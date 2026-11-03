@@ -12,8 +12,8 @@ interface AddAnimeModalProps {
   onImportCatalog?: (catalog: Anime[]) => void;
 }
 
-const DEFAULT_POSTER = '/images/poster_shonen_action_1793706206568.jpg';
-const DEFAULT_BANNER = '/images/hero_anime_cyberpunk_1793706206119.jpg';
+const DEFAULT_POSTER = '';
+const DEFAULT_BANNER = '';
 
 export const AddAnimeModal: React.FC<AddAnimeModalProps> = ({
   isOpen,
@@ -30,8 +30,8 @@ export const AddAnimeModal: React.FC<AddAnimeModalProps> = ({
   const [posterImage, setPosterImage] = useState('');
   const [bannerImage, setBannerImage] = useState('');
   const [genresInput, setGenresInput] = useState('Action, Shonen');
-  const [studio, setStudio] = useState('Studio MAPPA');
-  const [year, setYear] = useState('2025');
+  const [studio, setStudio] = useState('');
+  const [year, setYear] = useState('');
   const [rating, setRating] = useState('8.8');
   const [status, setStatus] = useState<'Airing' | 'Finished'>('Airing');
 
@@ -132,7 +132,7 @@ export const AddAnimeModal: React.FC<AddAnimeModalProps> = ({
       synopsis: synopsis.trim() || 'No synopsis provided.',
       posterImage: posterImage.trim() || DEFAULT_POSTER,
       bannerImage: bannerImage.trim() || posterImage.trim() || DEFAULT_BANNER,
-      rating: parseFloat(rating) || 8.5,
+      rating: parseFloat(rating) || 0,
       rank: 1,
       genres: parsedGenres.length > 0 ? parsedGenres : ['Action'],
       season: '2025',
@@ -176,8 +176,8 @@ export const AddAnimeModal: React.FC<AddAnimeModalProps> = ({
             rating: item.rating,
             rank: 1,
             genres: getGenreNames(item.genres),
-            season: item.dates?.season || '2025',
-            year: item.dates?.year || 2025,
+season: item.dates?.season || '',
+      year: item.dates?.year || 0,
             studio: item.studio,
             episodesCount: item.episodesCount,
             status: item.status || 'Finished',

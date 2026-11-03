@@ -89,7 +89,7 @@ export async function fetchHentaiData(slug: string): Promise<Anime> {
   const matchedYear = dateStr.match(/\d{4}/);
   const year = matchedYear ? parseInt(matchedYear[0], 10) : 2024;
 
-  const studio = String(item.studio || item.brand || item.producer || 'Studio');
+  const studio = String(item.studio || item.brand || item.producer || '');
   const animeId = `hentai-${slug.replace(/[^a-z0-9_-]+/gi, '-').toLowerCase()}`;
 
   const rawEpisodes = Array.isArray(item.episodes) ? item.episodes : [];

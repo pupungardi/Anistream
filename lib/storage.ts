@@ -6,6 +6,7 @@ import { INITIAL_COMMENTS } from './anime-data';
 import { getGenreNames } from './utils';
 
 const CATALOG_KEY = 'anistream_user_catalog_v3';
+const LEGACY_CATALOG_KEYS = ['anistream_user_catalog', 'anistream_user_catalog_v2'];
 const WATCHLIST_KEY = 'anistream_watchlist_v2';
 const PROGRESS_KEY = 'anistream_progress_v2';
 const COMMENTS_KEY = 'anistream_comments_v2';
@@ -20,19 +21,15 @@ export function sanitizeAnime(item: unknown): Anime {
     title: String(a.title || 'Untitled Anime'),
     japaneseTitle: String(a.japaneseTitle || a.title || ''),
     synopsis: String(a.synopsis || ''),
-    bannerImage: String(
-      a.bannerImage || a.banner || a.posterImage || '/images/hero_anime_cyberpunk_1793706206119.jpg'
-    ),
-    posterImage: String(
-      a.posterImage || a.cover || '/images/poster_shonen_action_1793706206568.jpg'
-    ),
-    rating: Number(a.rating) || 8.5,
-    rank: Number(a.rank) || 1,
-    genres: genres.length > 0 ? genres : ['Action'],
-    season: String(a.season || '2025'),
-    year: Number(a.year) || 2025,
-    studio: String(a.studio || 'Studio'),
-    episodesCount: episodes.length > 0 ? episodes.length : Number(a.episodesCount) || 1,
+    bannerImage: String(a.bannerImage || a.banner || a.posterImage || a.cover || ''),
+    posterImage: String(a.posterImage || a.cover || ''),
+    rating: Number(a.rating) || 0,
+    rank: Number(a.rank) || 0,
+    genres,
+    season: String(a.season || ''),
+    year: Number(a.year) || 0,
+    studio: String(a.studio || ''),
+    episodesCount: episodes.length > 0 ? episodes.length : Number(a.episodesCount) || 0,
     status: a.status === 'Finished' ? 'Finished' : 'Airing',
     isFeatured: Boolean(a.isFeatured),
     isTrending: Boolean(a.isTrending),
@@ -51,6 +48,7 @@ export function useAnimeStorage() {
   useEffect(() => {
     const frameId = requestAnimationFrame(() => {
       try {
+        LEGACY_CATALOG_KEYS.forEach((key) => localStorage.removeItem(key));
         const rawCatalog = localStorage.getItem(CATALOG_KEY);
         if (rawCatalog) {
           const parsed = JSON.parse(rawCatalog);
