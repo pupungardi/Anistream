@@ -259,6 +259,82 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
+  // Render iframe for embed streams (e.g., Hentai Ocean Embed API)
+  // Positioned strictly AFTER all hooks to preserve React Hook rules
+  if (episode.embedUrl) {
+    return (
+      <div
+        ref={playerContainerRef}
+        className={`relative w-full bg-black overflow-hidden flex flex-col transition-all duration-300 ${
+          isTheaterMode
+            ? 'max-w-none'
+            : 'max-w-7xl mx-auto rounded-xl border border-zinc-800/80 shadow-2xl'
+        }`}
+      >
+        {/* Navigation & Control Header for Embed Player */}
+        <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-950 border-b border-zinc-800/80 z-20">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-orange-600/20 text-orange-400 border border-orange-500/30 shrink-0">
+              Embed Stream
+            </span>
+            <span className="text-xs sm:text-sm font-semibold text-zinc-100 truncate">
+              {anime.title} — {episode.title || `Episode ${episode.episodeNumber}`}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {hasPrev && onPrevEpisode && (
+              <button
+                onClick={onPrevEpisode}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 rounded-md transition-colors cursor-pointer"
+                title="Previous Episode"
+              >
+                <SkipBack className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Prev</span>
+              </button>
+            )}
+
+            {hasNext && onNextEpisode && (
+              <button
+                onClick={onNextEpisode}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-orange-600 hover:bg-orange-500 text-white rounded-md transition-colors cursor-pointer shadow-md"
+                title="Next Episode"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <SkipForward className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            <button
+              onClick={onToggleTheaterMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors cursor-pointer ${
+                isTheaterMode
+                  ? 'bg-orange-600 border-orange-500 text-white'
+                  : 'bg-zinc-900 hover:bg-zinc-800 border-zinc-700/80 text-zinc-300 hover:text-white'
+              }`}
+              title={isTheaterMode ? 'Exit Theater Mode' : 'Theater Mode'}
+            >
+              <Tv className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{isTheaterMode ? 'Theater On' : 'Theater'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 16:9 Responsive iframe container */}
+        <div className="relative aspect-video w-full bg-black">
+          <iframe
+            src={episode.embedUrl}
+            title={episode.title || anime.title}
+            allow="autoplay; fullscreen; picture-in-picture"
+            referrerPolicy="no-referrer"
+            className="w-full h-full border-0 absolute inset-0"
+            allowFullScreen
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={playerContainerRef}

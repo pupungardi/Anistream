@@ -159,53 +159,11 @@ export const AddAnimeModal: React.FC<AddAnimeModalProps> = ({
     setFetchedAnimeData(null);
 
     try {
-      // First attempt local /api/anime route
-      let formatted: Anime | null = null;
-      try {
-        const res = await fetch(`/api/anime?slug=${encodeURIComponent(cleanSlug)}`);
-        const data = await res.json();
-        if (res.ok && data.success && data.data) {
-          const item = data.data;
-          formatted = {
-            id: item.slug,
-            title: item.title,
-            japaneseTitle: item.japaneseTitle,
-            synopsis: item.synopsis,
-            posterImage: item.cover,
-            bannerImage: item.banner,
-            rating: item.rating,
-            rank: 1,
-            genres: getGenreNames(item.genres),
-            season: item.dates?.season || '2025',
-            year: item.dates?.year || 2025,
-            studio: item.studio,
-            episodesCount: item.episodesCount,
-            status: item.status || 'Finished',
-            episodes: item.episodes.map((ep: Episode) => ({
-              ...ep,
-              animeId: item.slug,
-              durationSeconds: 1440,
-              synopsis: ep.title,
-            })),
-          };
-        }
-      } catch {
-        // Fallback to fetchHentaiData utility
-      }
-
-      // If not resolved from internal endpoint, try fetchHentaiData directly
-      if (!formatted) {
-        try {
-          formatted = await fetchHentaiData(cleanSlug);
-        } catch (fetchErr: any) {
-          setSlugFetchError(fetchErr?.message || 'Failed to fetch anime by slug');
-          return;
-        }
-      }
-
+      const formatted = await fetchHentaiData(cleanSlug);
       setFetchedAnimeData(formatted);
-    } catch {
-      setSlugFetchError('Network error while fetching anime endpoint');
+    } catch (fetchErr: unknown) {
+      const err = fetchErr as { message?: string };
+      setSlugFetchError(err?.message || 'Failed to fetch hentai metadata by slug.');
     } finally {
       setIsFetchingSlug(false);
     }
@@ -328,7 +286,7 @@ export const AddAnimeModal: React.FC<AddAnimeModalProps> = ({
               {/* Sample Slugs quick tags */}
               <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-400">
                 <span className="text-zinc-500">Suggested slugs:</span>
-                {['solo-leveling', 'attack-on-titan', 'jujutsu-kaisen', 'frieren-journey', 'cyberpunk-edgerunners'].map(
+                {['my-mother-1', 'solo-leveling', 'attack-on-titan', 'jujutsu-kaisen'].map(
                   (s) => (
                     <button
                       key={s}
@@ -366,7 +324,7 @@ export const AddAnimeModal: React.FC<AddAnimeModalProps> = ({
                       </h4>
                       <div className="text-xs text-zinc-400">
                         <span>{fetchedAnimeData.year}</span> · <span>{fetchedAnimeData.studio}</span> ·{' '}
-                        <span>★ {fetchedAnimeData.rating}</span>
+                        <span>{fetchedAnimeData.rating > 0 ? `★ ${fetchedAnimeData.rating}` : 'Unrated'}</span>
                       </div>
                       <div className="text-xs text-orange-400">
                         {fetchedAnimeData.genres.join(' · ')}

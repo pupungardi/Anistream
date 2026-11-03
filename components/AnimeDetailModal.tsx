@@ -77,7 +77,7 @@ export const AnimeDetailModal: React.FC<AnimeDetailModalProps> = ({
           <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-zinc-300">
             <span className="flex items-center gap-1 text-amber-400 font-semibold tabular-nums">
               <Star className="w-4 h-4 fill-amber-400" />
-              {anime.rating.toFixed(1)} / 10
+              {anime.rating > 0 ? `${anime.rating.toFixed(1)} / 10` : 'Unrated'}
             </span>
             <span aria-hidden="true" className="text-zinc-600">·</span>
             <span className="flex items-center gap-1.5 text-zinc-300">

@@ -52,7 +52,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = ({
           <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-zinc-300 font-medium">
             <span className="flex items-center gap-1 text-amber-400 font-semibold tabular-nums">
               <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-              {anime.rating.toFixed(1)}
+              {anime.rating > 0 ? anime.rating.toFixed(1) : '–'}
             </span>
             <span aria-hidden="true" className="text-zinc-600">·</span>
             <span className="tabular-nums">{anime.episodesCount} Episodes</span>

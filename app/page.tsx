@@ -15,6 +15,7 @@ import { WatchlistDrawer } from '../components/WatchlistDrawer';
 import { SearchModal } from '../components/SearchModal';
 import { AnimeDetailModal } from '../components/AnimeDetailModal';
 import { AddAnimeModal } from '../components/AddAnimeModal';
+import { AgeGateModal } from '../components/AgeGateModal';
 import { FilterBar } from '../components/FilterBar';
 import { getGenreNames, hasGenre } from '../lib/utils';
 import { Sparkles, ArrowLeft, Flame, Compass, Plus, Film, UploadCloud, Layers } from 'lucide-react';
@@ -48,6 +49,8 @@ export default function Home() {
   const [isWatchlistOpen, setIsWatchlistOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [detailModalAnime, setDetailModalAnime] = useState<Anime | null>(null);
+  const [isAgeGateOpen, setIsAgeGateOpen] = useState(false);
+  const [pendingAnimePlay, setPendingAnimePlay] = useState<{ anime: Anime; episodeIndex: number } | null>(null);
 
   // Filtering & View state
   const [selectedGenre, setSelectedGenre] = useState<string>('All');
@@ -57,13 +60,53 @@ export default function Home() {
   // Featured anime for the Hero spotlight (first anime in catalog if exists)
   const featuredAnime = catalog.length > 0 ? catalog[0] : null;
 
-  // Start streaming a specific anime & episode
+  // Check if anime is 18+ / adult
+  const isAdultAnime = (anime: Anime) => {
+    return Boolean(
+      anime.id.startsWith('hentai-') ||
+      anime.episodes.some((ep) => Boolean(ep.embedUrl)) ||
+      hasGenre(anime.genres, 'hentai') ||
+      hasGenre(anime.genres, 'milf') ||
+      hasGenre(anime.genres, 'uncensored') ||
+      hasGenre(anime.genres, 'ecchi')
+    );
+  };
+
+  // Start streaming a specific anime & episode with Age Gate protection
   const handleStartStreaming = (anime: Anime, episodeIndex = 0) => {
+    if (typeof window !== 'undefined' && isAdultAnime(anime)) {
+      const isAgeConfirmed = localStorage.getItem('anistream_age_confirmed_v1') === 'true';
+      if (!isAgeConfirmed) {
+        setPendingAnimePlay({ anime, episodeIndex });
+        setIsAgeGateOpen(true);
+        return;
+      }
+    }
+
     setActiveAnime(anime);
     const ep = anime.episodes[episodeIndex] || anime.episodes[0];
     setActiveEpisode(ep);
     // Smooth scroll to top of player
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleConfirmAge = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('anistream_age_confirmed_v1', 'true');
+    }
+    setIsAgeGateOpen(false);
+    if (pendingAnimePlay) {
+      setActiveAnime(pendingAnimePlay.anime);
+      const ep = pendingAnimePlay.anime.episodes[pendingAnimePlay.episodeIndex] || pendingAnimePlay.anime.episodes[0];
+      setActiveEpisode(ep);
+      setPendingAnimePlay(null);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleDeclineAge = () => {
+    setIsAgeGateOpen(false);
+    setPendingAnimePlay(null);
   };
 
   // Switch to next episode
@@ -513,6 +556,13 @@ export default function Home() {
         onClose={() => setIsAddModalOpen(false)}
         onAddAnime={addAnime}
         onImportCatalog={importCatalog}
+      />
+
+      {/* 18+ Age Gate Confirmation Modal */}
+      <AgeGateModal
+        isOpen={isAgeGateOpen}
+        onConfirm={handleConfirmAge}
+        onDecline={handleDeclineAge}
       />
     </div>
   );

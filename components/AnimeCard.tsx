@@ -66,7 +66,7 @@ export const AnimeCard: React.FC<AnimeCardProps> = ({
         {/* Top left rating text (Clean unboxed style) */}
         <div className="absolute top-2.5 left-2.5 flex items-center gap-1 px-2 py-1 bg-black/75 backdrop-blur-md rounded text-xs font-semibold text-amber-400 tabular-nums">
           <Star className="w-3 h-3 fill-amber-400" />
-          {anime.rating.toFixed(1)}
+          {anime.rating > 0 ? anime.rating.toFixed(1) : '–'}
         </div>
 
         {/* Watch Progress bar if active */}

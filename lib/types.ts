@@ -7,6 +7,7 @@ export interface Episode {
   duration: string;
   durationSeconds: number;
   videoUrl: string;
+  embedUrl?: string;
   introStart: number;
   introEnd: number;
   synopsis: string;

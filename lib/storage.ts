@@ -26,7 +26,9 @@ export function sanitizeAnime(item: unknown): Anime {
     posterImage: String(
       a.posterImage || a.cover || '/images/poster_shonen_action_1793706206568.jpg'
     ),
-    rating: Number(a.rating) || 8.5,
+    rating: typeof a.rating === 'number' && !isNaN(a.rating)
+      ? a.rating
+      : (!isNaN(Number(a.rating)) ? Number(a.rating) : 8.5),
     rank: Number(a.rank) || 1,
     genres: genres.length > 0 ? genres : ['Action'],
     season: String(a.season || '2025'),
