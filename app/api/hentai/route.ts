@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { HENTAI_BASE, isValidSlug, mapHentaiResponse } from '@/lib/hentai-api';
+import { HENTAI_BASE, normalizeSlug, isValidSlug, mapHentaiResponse } from '@/lib/hentai-api';
 
 export const revalidate = 3600;
 
@@ -7,17 +7,28 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const rawSlug = searchParams.get('slug');
 
-  if (!rawSlug || !isValidSlug(rawSlug)) {
+  if (!rawSlug) {
     return NextResponse.json(
       {
         success: false,
-        error: 'Invalid or missing slug parameter. Must match format /^[a-z0-9][a-z0-9-_]{0,120}$/i.',
+        error: 'Slug tidak boleh kosong. Coba contoh: my-mother-1',
       },
       { status: 400 }
     );
   }
 
-  const slug = rawSlug.trim().toLowerCase();
+  const slug = normalizeSlug(rawSlug);
+
+  if (!slug || !isValidSlug(slug)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Slug tidak valid, coba contoh: my-mother-1',
+      },
+      { status: 400 }
+    );
+  }
+
   const upstreamUrl = `${HENTAI_BASE}/api?action=hentai&slug=${encodeURIComponent(slug)}`;
 
   try {
@@ -25,8 +36,10 @@ export async function GET(req: NextRequest) {
       signal: AbortSignal.timeout(10000),
       next: { revalidate: 3600 },
       headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'AniStream/1.0',
+        'Accept': 'application/json, text/plain, */*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Referer': 'https://hentaiocean.com/',
+        'Accept-Language': 'en-US,en;q=0.9',
       },
     });
 
@@ -34,7 +47,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: `Upstream service responded with status ${upstreamRes.status} (${upstreamRes.statusText})`,
+          error: `Gagal mengambil data dari server (${upstreamRes.status}). Silakan coba lagi.`,
         },
         { status: upstreamRes.status >= 500 ? 502 : upstreamRes.status }
       );
@@ -47,7 +60,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: `No hentai found for slug: "${slug}"`,
+          error: `Anime dengan slug "${slug}" tidak ditemukan. Coba contoh: my-mother-1`,
         },
         { status: 404 }
       );
@@ -75,8 +88,8 @@ export async function GET(req: NextRequest) {
       {
         success: false,
         error: isTimeout
-          ? 'Upstream request timed out after 10 seconds'
-          : `Failed to fetch from upstream: ${err?.message || 'Network error'}`,
+          ? 'Koneksi ke server Hentai Ocean mengalami timeout. Silakan coba lagi.'
+          : 'Gagal terhubung ke server Hentai Ocean. Silakan periksa koneksi atau coba lagi nanti.',
       },
       { status: isTimeout ? 504 : 502 }
     );

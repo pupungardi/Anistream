@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Anime, Episode } from '../lib/types';
 import { useAnimeStorage } from '../lib/storage';
 import { SAMPLE_REAL_ANIME } from '../lib/sample-catalog';
@@ -38,6 +38,10 @@ export default function Home() {
     toggleLikeComment,
   } = useAnimeStorage();
 
+  // RSS Auto-populate State
+  const [isLoadingRss, setIsLoadingRss] = useState(false);
+  const [rssError, setRssError] = useState<string | null>(null);
+
   // Active streaming state
   const [activeAnime, setActiveAnime] = useState<Anime | null>(null);
   const [activeEpisode, setActiveEpisode] = useState<Episode | null>(null);
@@ -56,6 +60,32 @@ export default function Home() {
   const [selectedGenre, setSelectedGenre] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'rating' | 'episodes' | 'newest'>('rating');
   const [viewMode, setViewMode] = useState<'carousel' | 'grid'>('carousel');
+
+  // Fetch RSS feed to automatically populate catalog on load
+  const fetchRssCatalog = useCallback(async () => {
+    setIsLoadingRss(true);
+    setRssError(null);
+    try {
+      const res = await fetch('/api/rss');
+      const json = await res.json();
+      if (res.ok && json.success && Array.isArray(json.data) && json.data.length > 0) {
+        importCatalog(json.data);
+      } else {
+        const errorMsg = json?.error || 'Gagal mengambil katalog dari Hentai Ocean. Silakan coba lagi.';
+        setRssError(errorMsg);
+      }
+    } catch {
+      setRssError('Gagal terhubung ke server Hentai Ocean. Silakan periksa koneksi internet atau coba lagi.');
+    } finally {
+      setIsLoadingRss(false);
+    }
+  }, [importCatalog]);
+
+  useEffect(() => {
+    if (isHydrated && catalog.length === 0 && !isLoadingRss && !rssError) {
+      fetchRssCatalog();
+    }
+  }, [isHydrated, catalog.length, isLoadingRss, rssError, fetchRssCatalog]);
 
   // Featured anime for the Hero spotlight (first anime in catalog if exists)
   const featuredAnime = catalog.length > 0 ? catalog[0] : null;
@@ -334,7 +364,7 @@ export default function Home() {
                 onToggleWatchlist={toggleWatchlist}
               />
             ) : (
-              /* Clean Zero-State when Catalog is Empty (with 1-Click Load Sample Anime) */
+              /* Zero-State when Catalog is Empty (Auto-populates from Hentai Ocean RSS) */
               <section className="relative w-full overflow-hidden bg-[#0a0c12] border-b border-zinc-800/80 py-20 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-2xl mx-auto text-center space-y-5">
                   <div className="w-16 h-16 rounded-2xl bg-orange-600/10 border border-orange-500/30 flex items-center justify-center mx-auto text-orange-500">
@@ -342,30 +372,49 @@ export default function Home() {
                   </div>
 
                   <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                    Your Anime Library is Ready
+                    Katalog AniStream (Hentai Ocean)
                   </h1>
 
                   <p className="text-sm sm:text-base text-zinc-400 leading-relaxed">
-                    Demo data has been removed. You can add your own anime series or load a collection to enjoy horizontal scrolling (scroll kanan dan kiri) across titles and episodes.
+                    Daftar anime otomatis dimuat dari Hentai Ocean RSS Feed. Anda juga dapat menambahkan judul anime secara manual menggunakan slug atau URL.
                   </p>
 
-                  <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
-                    <button
-                      onClick={() => importCatalog(SAMPLE_REAL_ANIME)}
-                      className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-orange-600 hover:bg-orange-500 rounded-lg shadow-lg shadow-orange-600/30 transition-all cursor-pointer"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      <span>Muat Contoh Anime Populer</span>
-                    </button>
+                  {isLoadingRss ? (
+                    <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                      <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-xs text-zinc-400 font-medium">
+                        Mengambil data dari Hentai Ocean RSS...
+                      </span>
+                    </div>
+                  ) : rssError ? (
+                    <div className="p-5 bg-red-950/40 border border-red-500/50 rounded-xl space-y-3 max-w-md mx-auto">
+                      <p className="text-xs text-red-300 font-medium">{rssError}</p>
+                      <button
+                        onClick={fetchRssCatalog}
+                        className="px-5 py-2 text-xs font-bold text-white bg-orange-600 hover:bg-orange-500 rounded-lg shadow cursor-pointer transition-colors"
+                      >
+                        Coba lagi
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
+                      <button
+                        onClick={fetchRssCatalog}
+                        className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-orange-600 hover:bg-orange-500 rounded-lg shadow-lg shadow-orange-600/30 transition-all cursor-pointer"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        <span>Muat Ulang Katalog RSS</span>
+                      </button>
 
-                    <button
-                      onClick={() => setIsAddModalOpen(true)}
-                      className="flex items-center gap-2 px-5 py-3 text-sm font-medium text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 rounded-lg transition-all cursor-pointer"
-                    >
-                      <Plus className="w-4 h-4 text-orange-400" />
-                      <span>+ Tambah Anime Manual</span>
-                    </button>
-                  </div>
+                      <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="flex items-center gap-2 px-5 py-3 text-sm font-medium text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 rounded-lg transition-all cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4 text-orange-400" />
+                        <span>+ Tambah Slug / Link</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </section>
             )}

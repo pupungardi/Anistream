@@ -151,19 +151,18 @@ export const AddAnimeModal: React.FC<AddAnimeModalProps> = ({
 
   const handleFetchBySlug = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanSlug = slugQuery.trim().toLowerCase();
-    if (!cleanSlug) return;
+    if (!slugQuery.trim()) return;
 
     setIsFetchingSlug(true);
     setSlugFetchError(null);
     setFetchedAnimeData(null);
 
     try {
-      const formatted = await fetchHentaiData(cleanSlug);
+      const formatted = await fetchHentaiData(slugQuery);
       setFetchedAnimeData(formatted);
     } catch (fetchErr: unknown) {
       const err = fetchErr as { message?: string };
-      setSlugFetchError(err?.message || 'Failed to fetch hentai metadata by slug.');
+      setSlugFetchError(err?.message || 'Slug tidak valid, coba contoh: my-mother-1');
     } finally {
       setIsFetchingSlug(false);
     }
@@ -270,7 +269,7 @@ export const AddAnimeModal: React.FC<AddAnimeModalProps> = ({
                   type="text"
                   value={slugQuery}
                   onChange={(e) => setSlugQuery(e.target.value)}
-                  placeholder="e.g. solo-leveling, attack-on-titan, jujutsu-kaisen..."
+                  placeholder="e.g. my-mother-1 or https://hentaiocean.com/watch/my-mother-1"
                   className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-700/80 rounded-lg text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 font-mono"
                 />
                 <button

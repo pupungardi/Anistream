@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { Anime } from "./types"
+import { normalizeSlug } from "./hentai-api"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -52,20 +53,19 @@ export function hasGenre(rawGenres: unknown, targetGenre: string): boolean {
  * Fetches hentai metadata from the server-side proxy endpoint /api/hentai?slug=...
  * and returns the mapped Anime object.
  */
-export async function fetchHentaiData(slug: string): Promise<Anime> {
-  const cleanSlug = slug.trim().toLowerCase();
+export async function fetchHentaiData(inputSlug: string): Promise<Anime> {
+  const cleanSlug = normalizeSlug(inputSlug);
   if (!cleanSlug) {
-    throw new Error('Please enter a valid slug (e.g. "my-mother-1").');
+    throw new Error('Slug tidak valid, coba contoh: my-mother-1');
   }
 
   const res = await fetch(`/api/hentai?slug=${encodeURIComponent(cleanSlug)}`);
   const json = await res.json().catch(() => null);
 
   if (!res.ok || !json?.success || !json?.data) {
-    const errorMsg = json?.error || `Failed to fetch data for slug "${slug}" (${res.status})`;
+    const errorMsg = json?.error || 'Slug tidak valid, coba contoh: my-mother-1';
     throw new Error(errorMsg);
   }
 
   return json.data as Anime;
 }
-

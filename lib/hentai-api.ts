@@ -3,13 +3,57 @@ import { Anime, Episode } from './types';
 export const HENTAI_BASE = 'https://hentaiocean.com';
 
 /**
+ * Normalizes input text or URL into a clean slug string.
+ * Extracts slug from full URLs like "https://hentaiocean.com/watch/my-mother-1",
+ * converts spaces to hyphens, lowercases, and strips illegal characters.
+ */
+export function normalizeSlug(input: string): string {
+  if (!input || typeof input !== 'string') return '';
+  let str = input.trim();
+
+  if (str.includes('http://') || str.includes('https://') || str.includes('hentaiocean.com')) {
+    try {
+      const urlStr = str.startsWith('http') ? str : `https://${str}`;
+      const url = new URL(urlStr);
+      const qSlug = url.searchParams.get('slug');
+      if (qSlug) {
+        str = qSlug;
+      } else {
+        const segments = url.pathname.split('/').filter(Boolean);
+        if (segments.length > 0) {
+          str = segments[segments.length - 1];
+        }
+      }
+    } catch {
+      // Ignore parsing error
+    }
+  }
+
+  try {
+    str = decodeURIComponent(str);
+  } catch {
+    // Ignore decoding error
+  }
+
+  const clean = str
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return clean;
+}
+
+/**
  * Validates the slug against safe character pattern.
  * Expected pattern: ^[a-z0-9][a-z0-9-_]{0,120}$
  */
 export function isValidSlug(slug: string): boolean {
   if (!slug || typeof slug !== 'string') return false;
-  const trimmed = slug.trim();
-  return /^[a-z0-9][a-z0-9-_]{0,120}$/i.test(trimmed);
+  const clean = normalizeSlug(slug);
+  return clean.length >= 1 && clean.length <= 120 && /^[a-z0-9][a-z0-9-_]{0,120}$/.test(clean);
 }
 
 export interface RawHentaiInfoItem {
