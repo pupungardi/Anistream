@@ -305,6 +305,17 @@ export const AddAnimeModal: React.FC<AddAnimeModalProps> = ({
                 <p className="text-xs text-zinc-400">
                   Retrieve title, release dates, genres, cover images, and episode streams via the API endpoint.
                 </p>
+                <p className="mt-2 text-[11px] text-zinc-500">
+                  From:{' '}
+                  <a
+                    href="https://hentaiocean.com/api-docs"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-orange-400 hover:text-orange-300 underline underline-offset-2"
+                  >
+                    hentaiocean.com/api-docs
+                  </a>
+                </p>
               </div>
 
               <form onSubmit={handleFetchBySlug} className="flex gap-2">

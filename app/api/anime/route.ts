@@ -23,50 +23,21 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: true, count: summaries.length, data: summaries });
   }
 
-  // Look up anime by slug
-  const matched = SAMPLE_REAL_ANIME.find(
-    (a) => a.id.toLowerCase() === slug || a.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug
-  );
+  const externalUrl = `https://hentaiocean.com/api?action=hentai&slug=${encodeURIComponent(slug)}`;
 
-  if (!matched) {
+  try {
+    const externalResponse = await fetch(externalUrl, { headers: { Accept: 'application/json' } });
+    const externalPayload = await externalResponse.json();
+
+    if (externalResponse.ok) {
+      return NextResponse.json({ success: true, source: externalUrl, data: externalPayload.data ?? externalPayload });
+    }
+
     return NextResponse.json(
-      {
-        success: false,
-        error: `Anime with slug "${slug}" not found in library.`,
-        availableSlugs: SAMPLE_REAL_ANIME.map((a) => a.id),
-      },
-      { status: 404 }
+      { success: false, error: externalPayload?.message || `Anime with slug "${slug}" was not found.` },
+      { status: externalResponse.status }
     );
+  } catch {
+    return NextResponse.json({ success: false, error: 'Unable to reach the HentaiOcean API.' }, { status: 502 });
   }
-
-  return NextResponse.json({
-    success: true,
-    data: {
-      slug: matched.id,
-      title: matched.title,
-      japaneseTitle: matched.japaneseTitle,
-      synopsis: matched.synopsis,
-      dates: {
-        season: matched.season,
-        year: matched.year,
-      },
-      genres: matched.genres,
-      cover: matched.posterImage,
-      banner: matched.bannerImage,
-      studio: matched.studio,
-      rating: matched.rating,
-      status: matched.status,
-      episodesCount: matched.episodesCount,
-      episodes: matched.episodes.map((ep) => ({
-        id: ep.id,
-        episodeNumber: ep.episodeNumber,
-        title: ep.title,
-        duration: ep.duration,
-        videoUrl: ep.videoUrl,
-        thumbnail: ep.thumbnail,
-        introStart: ep.introStart,
-        introEnd: ep.introEnd,
-      })),
-    },
-  });
 }

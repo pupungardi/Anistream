@@ -54,7 +54,7 @@ export function hasGenre(rawGenres: unknown, targetGenre: string): boolean {
  */
 export async function fetchHentaiData(slug: string): Promise<Anime> {
   const cleanSlug = encodeURIComponent(slug.trim());
-  const res = await fetch(`https://hentaiocean.com/api?action=hentai&slug=${cleanSlug}`);
+  const res = await fetch(`/api/anime?slug=${cleanSlug}`);
   if (!res.ok) {
     throw new Error(`Failed to fetch data for slug "${slug}": ${res.statusText}`);
   }
