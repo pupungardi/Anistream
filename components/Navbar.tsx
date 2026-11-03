@@ -24,7 +24,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   return (
     <header className="sticky top-0 z-40 w-full bg-[#07080a]/90 backdrop-blur-md border-b border-zinc-800/80">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-8 px-4 sm:px-6 lg:px-8 h-16">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 h-14">
         {/* Zone 1: Single text element wordmark */}
         <button
           onClick={onGoHome}
@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         {/* Zone 2: 4–5 clean single-line text navigation links */}
-        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-zinc-300">
+        <nav className="hidden md:flex flex-1 items-center justify-center gap-5 text-sm font-medium text-zinc-300">
           <button
             onClick={onGoHome}
             className="hover:text-white transition-colors cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5"
@@ -76,7 +76,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Zone 3: Action group (Add Anime, Search trigger & Watchlist) */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="hidden lg:flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={onOpenAddAnime}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/80 rounded-md transition-all cursor-pointer whitespace-nowrap"
