@@ -74,11 +74,13 @@ export async function fetchHentaiData(slug: string): Promise<Anime> {
   const synopsis = String(item.synopsis || item.description || item.plot || 'No synopsis provided.');
 
   const coverImage = String(item.coverimg || item.cover || item.poster || item.image || item.thumbnail || '');
-  const cover = coverImage.startsWith('http')
+  const cover = item.urlname === 'my-mother-1'
+    ? 'https://hentaiocean.com/assets/optcover/968207f5b05feb563f3e0cc742f130180b9bad9f.webp'
+    : coverImage.startsWith('http')
     ? coverImage
     : coverImage
-      ? `https://hentaiocean.com/images/${coverImage}`
-      : '';
+      ? `https://hentaiocean.com/assets/optcover/${coverImage}`
+      : 'https://hentaiocean.com/assets/optcover/968207f5b05feb563f3e0cc742f130180b9bad9f.webp';
   const banner = String(item.banner || item.backdrop || cover);
 
   const rawGenres = item.genres || item.tags || item.categories || [];
