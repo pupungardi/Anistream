@@ -54,7 +54,7 @@ export function hasGenre(rawGenres: unknown, targetGenre: string): boolean {
  */
 export async function fetchHentaiData(slug: string): Promise<Anime> {
   const cleanSlug = encodeURIComponent(slug.trim());
-  const res = await fetch(`https://hentaiocean.com/api?action=hentai&slug=${cleanSlug}`);
+  const res = await fetch(`/api/anime?slug=${cleanSlug}`);
   if (!res.ok) {
     throw new Error(`Failed to fetch data for slug "${slug}": ${res.statusText}`);
   }
@@ -64,60 +64,50 @@ export async function fetchHentaiData(slug: string): Promise<Anime> {
     ? (rawData as Record<string, unknown>).data
     : rawData;
 
-  const item = (data && typeof data === 'object') ? (data as Record<string, unknown>) : {};
+  const payload = (data && typeof data === 'object') ? (data as Record<string, unknown>) : {};
+  const item = Array.isArray(payload.info) && payload.info[0] && typeof payload.info[0] === 'object'
+    ? { ...(payload.info[0] as Record<string, unknown>), genres: payload.genres }
+    : payload;
 
-  const title = String(item.title || item.name || slug);
+  const title = String(item.title || item.name || item.videoname || item.urlname || slug);
   const japaneseTitle = String(item.japanese_title || item.native_title || item.original_title || title);
   const synopsis = String(item.synopsis || item.description || item.plot || 'No synopsis provided.');
-  
-  const cover = String(
-    item.cover || item.poster || item.image || item.thumbnail || 'https://picsum.photos/seed/anime-cover/600/900'
-  );
-  const banner = String(
-    item.banner || item.backdrop || item.cover || cover
-  );
+
+  const coverImage = String(item.coverimg || item.cover || item.poster || item.image || item.thumbnail || '');
+  const cover = item.urlname === 'my-mother-1'
+    ? 'https://hentaiocean.com/assets/optcover/968207f5b05feb563f3e0cc742f130180b9bad9f.webp'
+    : coverImage.startsWith('http')
+    ? coverImage
+    : coverImage
+      ? `https://hentaiocean.com/assets/optcover/${coverImage}`
+      : 'https://hentaiocean.com/assets/optcover/968207f5b05feb563f3e0cc742f130180b9bad9f.webp';
+  const banner = String(item.banner || item.backdrop || cover);
 
   const rawGenres = item.genres || item.tags || item.categories || [];
   const parsedGenres = getGenreNames(rawGenres);
   const genres = parsedGenres.length > 0 ? parsedGenres : ['Animation'];
 
-  const dateStr = String(item.dates || item.date || item.release_date || item.year || '2024');
+  const dateStr = String(item.dates || item.date || item.release_date || item.releasedate || item.year || '');
   const matchedYear = dateStr.match(/\d{4}/);
   const year = matchedYear ? parseInt(matchedYear[0], 10) : 2024;
 
-  const studio = String(item.studio || item.brand || item.producer || 'Studio');
+  const studio = String(item.studio || item.brand || item.producer || '');
   const animeId = `hentai-${slug.replace(/[^a-z0-9_-]+/gi, '-').toLowerCase()}`;
 
   const rawEpisodes = Array.isArray(item.episodes) ? item.episodes : [];
-  const episodes = rawEpisodes.length > 0
-    ? rawEpisodes.map((ep: any, idx: number) => ({
-        id: ep.id ? String(ep.id) : `${animeId}-ep-${idx + 1}`,
-        animeId,
-        episodeNumber: idx + 1,
-        title: ep.title ? String(ep.title) : `Episode ${idx + 1}`,
-        thumbnail: ep.thumbnail ? String(ep.thumbnail) : cover,
-        duration: ep.duration ? String(ep.duration) : '24:00',
-        durationSeconds: 1440,
-        videoUrl: ep.video_url || ep.videoUrl || ep.stream || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-        introStart: 0,
-        introEnd: 60,
-        synopsis: ep.synopsis ? String(ep.synopsis) : `Episode ${idx + 1}`,
-      }))
-    : [
-        {
-          id: `${animeId}-ep-1`,
-          animeId,
-          episodeNumber: 1,
-          title: 'Episode 1',
-          thumbnail: cover,
-          duration: '24:00',
-          durationSeconds: 1440,
-          videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-          introStart: 0,
-          introEnd: 60,
-          synopsis: title,
-        },
-      ];
+  const episodes = rawEpisodes.map((ep: any, idx: number) => ({
+    id: ep.id ? String(ep.id) : `${animeId}-ep-${idx + 1}`,
+    animeId,
+    episodeNumber: idx + 1,
+    title: ep.title ? String(ep.title) : `Episode ${idx + 1}`,
+    thumbnail: ep.thumbnail ? String(ep.thumbnail) : cover,
+    duration: ep.duration ? String(ep.duration) : '',
+    durationSeconds: typeof ep.durationSeconds === 'number' ? ep.durationSeconds : 0,
+    videoUrl: ep.video_url || ep.videoUrl || ep.stream || '',
+    introStart: 0,
+    introEnd: 0,
+    synopsis: ep.synopsis ? String(ep.synopsis) : '',
+  }));
 
   return {
     id: animeId,
@@ -126,8 +116,8 @@ export async function fetchHentaiData(slug: string): Promise<Anime> {
     synopsis,
     bannerImage: banner,
     posterImage: cover,
-    rating: typeof item.rating === 'number' ? item.rating : 8.5,
-    rank: 1,
+    rating: typeof item.rating === 'number' ? item.rating : 0,
+    rank: 0,
     genres,
     season: dateStr || `${year}`,
     year,
