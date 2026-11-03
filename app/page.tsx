@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from 'react';
 import { Anime, Episode } from '../lib/types';
 import { useAnimeStorage } from '../lib/storage';
-import { SAMPLE_REAL_ANIME } from '../lib/sample-catalog';
 import { Navbar } from '../components/Navbar';
 import { HeroSpotlight } from '../components/HeroSpotlight';
 import { AnimeCard } from '../components/AnimeCard';
@@ -303,18 +302,10 @@ export default function Home() {
                   </h1>
 
                   <p className="text-sm sm:text-base text-zinc-400 leading-relaxed">
-                    Demo data has been removed. You can add your own anime series or load a collection to enjoy horizontal scrolling (scroll kanan dan kiri) across titles and episodes.
+                    Your library is empty. Fetch a real title from the HentaiOcean API or import your own JSON collection.
                   </p>
 
                   <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
-                    <button
-                      onClick={() => importCatalog(SAMPLE_REAL_ANIME)}
-                      className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-orange-600 hover:bg-orange-500 rounded-lg shadow-lg shadow-orange-600/30 transition-all cursor-pointer"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      <span>Muat Contoh Anime Populer</span>
-                    </button>
-
                     <button
                       onClick={() => setIsAddModalOpen(true)}
                       className="flex items-center gap-2 px-5 py-3 text-sm font-medium text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 rounded-lg transition-all cursor-pointer"

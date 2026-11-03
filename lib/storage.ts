@@ -5,7 +5,7 @@ import { Anime, WatchlistItem, EpisodeProgress, EpisodeComment, Episode } from '
 import { INITIAL_COMMENTS } from './anime-data';
 import { getGenreNames } from './utils';
 
-const CATALOG_KEY = 'anistream_user_catalog_v2';
+const CATALOG_KEY = 'anistream_user_catalog_v3';
 const WATCHLIST_KEY = 'anistream_watchlist_v2';
 const PROGRESS_KEY = 'anistream_progress_v2';
 const COMMENTS_KEY = 'anistream_comments_v2';
