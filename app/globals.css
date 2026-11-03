@@ -1,0 +1,36 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@layer base {
+  :root {
+    --background: #07080a;
+    --foreground: #f3f4f6;
+    color-scheme: dark;
+  }
+}
+
+body {
+  background-color: #07080a;
+  color: #f3f4f6;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Custom sleek scrollbar for streaming catalogs */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0c0e14;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #232734;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f97316;
+}
